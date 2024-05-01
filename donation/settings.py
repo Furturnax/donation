@@ -8,18 +8,28 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+PROJECT_APPS = [
     'users.apps.UsersConfig',
     'core.apps.CoreConfig',
     'collect.apps.CollectConfig',
-
 ]
+
+THIRD_PARTY_APPS = [
+    'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
+]
+
+INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -86,3 +96,21 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+    'HIDE_USERS': False,
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserSerializer',
+        'user_list': 'api.serializers.UserSerializer',
+    },
+}

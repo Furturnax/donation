@@ -1,10 +1,10 @@
 from django.contrib import admin
 
-from .models import Collect, Occasion, Payment
+from .models import Collect, Event, Payment
 
 
-@admin.register(Occasion)
-class OccasionAdmin(admin.ModelAdmin):
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
     """Интерфейс управления тегами."""
 
     list_display = (
@@ -29,7 +29,7 @@ class PaymentAdmin(admin.ModelAdmin):
         'collect',
         'user',
         'amount',
-        'datetime',
+        'created_at',
     )
     search_fields = ('user__username',)
     list_filter = (
@@ -39,6 +39,12 @@ class PaymentAdmin(admin.ModelAdmin):
     list_display_links = ('user',)
     ordering = ('user',)
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(Collect)
 class CollectAdmin(admin.ModelAdmin):
@@ -47,27 +53,29 @@ class CollectAdmin(admin.ModelAdmin):
     list_display = (
         'author',
         'title',
-        'display_occasion',
-        'description',
+        'display_event',
+        'text',
         'target_amount',
         'current_amount',
-        'contributors_count',
-        'cover_image',
-        'end_datetime',
+        'patrician_count',
+        'cover',
+        'endtime',
+        'created_at',
     )
+    exclude = ('list_payment',)
     search_fields = (
-        'user__username',
-        'recipe__name',
+        'author__username',
+        'collect__title',
     )
     list_filter = (
         'author__username',
     )
     list_display_links = ('author',)
-    ordering = ('author',)
+    ordering = ('-created_at',)
 
-    @admin.display(description='Теги')
-    def display_occasion(self, obj):
-        """Добавляет теги в разделе рецепты."""
+    @admin.display(description='События')
+    def display_event(self, obj):
+        """Добавляет события в разделе сбора."""
         return ', '.join(
-            occasion.title for occasion in obj.occasion.all()
+            event.title for event in obj.event.all()
         )
