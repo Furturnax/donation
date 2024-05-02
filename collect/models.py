@@ -3,9 +3,9 @@ from django.core.validators import MinValueValidator
 
 from core.consts import (
     DECIMAL_PLACE,
-    DEFAULT_VALUE,
     MAX_DIGITS_DECIMALFIELD,
     MAX_LENGHT_TITLE,
+    MAX_LENGTH_TEXT,
     MIN_PAYMENT,
     MIN_VALUE_VALIDATOR
 )
@@ -22,15 +22,15 @@ class Collect(models.Model):
         'Название сбора', max_length=MAX_LENGHT_TITLE,
     )
     event = models.ManyToManyField(
-        'Event', verbose_name='Причина',
+        'Event', verbose_name='Событие',
     )
     text = models.TextField(
         'Описание целей сбора',
+        max_length=MAX_LENGTH_TEXT,
     )
-    target_amount = models.DecimalField(
+    target_amount = models.IntegerField(
         'Сумма запланированная к сбору',
-        max_digits=MAX_DIGITS_DECIMALFIELD,
-        decimal_places=DECIMAL_PLACE,
+        default=None,
         validators=(
             MinValueValidator(
                 MIN_VALUE_VALIDATOR,
@@ -41,45 +41,14 @@ class Collect(models.Model):
             ),
         ),
     )
-    current_amount = models.DecimalField(
-        'Собранная сумма на текущий момент',
-        default=DEFAULT_VALUE,
-        max_digits=MAX_DIGITS_DECIMALFIELD,
-        decimal_places=DECIMAL_PLACE,
-        validators=(
-            MinValueValidator(
-                MIN_VALUE_VALIDATOR,
-                message=(
-                    'Минимально собранная сумма '
-                    f'сбора - {MIN_VALUE_VALIDATOR}.'
-                )
-            ),
-        ),
-    )
-    patrician_count = models.PositiveIntegerField(
-        'Колличество сделавших пожертвование',
-        default=DEFAULT_VALUE,
-        validators=(
-            MinValueValidator(
-                MIN_VALUE_VALIDATOR,
-                message=(
-                    'Минимальное количество людей сделавших '
-                    f'пожертование - {MIN_VALUE_VALIDATOR}.'
-                )
-            ),
-        ),
-    )
     cover = models.ImageField(
-        'Обложка сбора', upload_to='source/image/',
+        'Обложка сбора', upload_to='source/image/', null=True, blank=True
     )
     endtime = models.DateTimeField(
         'Дата и время завершение сбора',
     )
     created_at = models.DateTimeField(
         'Время создания сбора', auto_now_add=True
-    )
-    list_payment = models.ManyToManyField(
-        'Payment', verbose_name='Автор сбора', related_name='donations',
     )
 
     class Meta:
@@ -137,6 +106,7 @@ class Payment(models.Model):
         verbose_name = 'платеж'
         verbose_name_plural = 'Платяжи'
         ordering = ('-created_at',)
+        default_related_name = 'payments'
 
     def __str__(self):
         return (

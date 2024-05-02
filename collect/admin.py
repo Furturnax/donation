@@ -39,12 +39,6 @@ class PaymentAdmin(admin.ModelAdmin):
     list_display_links = ('user',)
     ordering = ('user',)
 
-    def has_add_permission(self, request):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
 
 @admin.register(Collect)
 class CollectAdmin(admin.ModelAdmin):
@@ -56,13 +50,10 @@ class CollectAdmin(admin.ModelAdmin):
         'display_event',
         'text',
         'target_amount',
-        'current_amount',
-        'patrician_count',
         'cover',
         'endtime',
         'created_at',
     )
-    exclude = ('list_payment',)
     search_fields = (
         'author__username',
         'collect__title',

@@ -1,3 +1,4 @@
+# from django.views.decorators.cache import cache_page
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -6,8 +7,9 @@ from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
     CollectReadSerializer,
     CollectWriteSerializer,
+    PaymentReadSerializer,
+    PaymentWriteSerializer,
     UserSerializer,
-    PaymentSerializer,
 )
 from collect.models import User, Payment, Collect
 
@@ -22,9 +24,15 @@ class UserViewSet(DjoserUserViewSet):
 class PaymentViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с платяжом."""
 
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentWriteSerializer
     queryset = Payment.objects.all()
     permission_classes = (IsAuthenticated, IsAuthorOrReadOnly)
+
+    def get_serializer_class(self):
+        """Определяет класс сериализатора в зависимости от типа запроса."""
+        if self.request.method == 'GET':
+            return PaymentReadSerializer
+        return PaymentWriteSerializer
 
 
 class CollectViewSet(viewsets.ModelViewSet):
@@ -39,3 +47,8 @@ class CollectViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return CollectReadSerializer
         return CollectWriteSerializer
+
+    # @cache_page(60 * 30)
+    # def list(self, request, *args, **kwargs):
+    #     """Кэширование данных, возвращаемых GET-эндпоинтом"""
+    #     return super().list(request, *args, **kwargs)

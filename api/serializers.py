@@ -1,5 +1,6 @@
+from django.core.mail import send_mail
 from django.db import transaction
-from django.db.models import Count
+from django.utils import timezone
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
@@ -19,18 +20,25 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
         )
+        ref_name = 'CustomUser'
 
 
 class UserShortSerializer(serializers.ModelSerializer):
     """Сериализатор для вывода имени и фамилии пользователя."""
 
+    full_name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
-            'id',
-            'first_name',
-            'last_name',
+            'full_name',
         )
+
+    def get_full_name(self, obj):
+        """Возвращает имя и фамилию."""
+        if obj.first_name or obj.last_name:
+            return f'{obj.first_name} {obj.last_name}'
+        return obj.username
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -39,12 +47,11 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = (
-            'id',
             'title',
         )
 
 
-class PaymentSerializer(serializers.ModelSerializer):
+class PaymentWriteSerializer(serializers.ModelSerializer):
     """Сериализатор модели платяжа."""
 
     class Meta:
@@ -60,23 +67,20 @@ class PaymentSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         """Метод для создания платежа."""
-        collect = validated_data.get('collect')
-        amount = validated_data.get('amount')
         payment = Payment.objects.create(**validated_data)
-        collect.current_amount += amount
-        patricians_count = (
-            Payment.objects.filter(collect=collect)
-            .values('user')
-            .annotate(total=Count('user'))
-            .count()
+        payment.save()
+        send_mail(
+            'Платёж создан',
+            'Ваш платеж успешно создан!',
+            'support@dotations.com',
+            [self.context['request'].user.email],
+            fail_silently=True,
         )
-        collect.patrician_count = patricians_count
-        collect.save()
         return payment
 
 
-class PaymentShortSerializer(serializers.ModelSerializer):
-    """Короткий сериализатор модели платежа."""
+class PaymentReadSerializer(serializers.ModelSerializer):
+    """Сериализатор модели платяжа."""
 
     user = UserShortSerializer()
 
@@ -84,6 +88,21 @@ class PaymentShortSerializer(serializers.ModelSerializer):
         model = Payment
         fields = (
             'id',
+            'collect',
+            'user',
+            'amount',
+            'created_at',
+        )
+
+
+class PaymentSortSerializer(serializers.ModelSerializer):
+    """Сериализатор модели платяжа."""
+
+    user = UserShortSerializer()
+
+    class Meta:
+        model = Payment
+        fields = (
             'user',
             'amount',
             'created_at',
@@ -93,9 +112,11 @@ class PaymentShortSerializer(serializers.ModelSerializer):
 class CollectReadSerializer(serializers.ModelSerializer):
     """Сериализатор для получения информации о сборе."""
 
-    author = UserSerializer(read_only=True)
-    event = EventSerializer(many=True, read_only=True)
-    list_payment = serializers.SerializerMethodField()
+    author = UserShortSerializer()
+    event = EventSerializer(many=True)
+    current_amount = serializers.SerializerMethodField()
+    patrician_count = serializers.SerializerMethodField()
+    list_payments = serializers.SerializerMethodField()
 
     class Meta:
         model = Collect
@@ -111,13 +132,20 @@ class CollectReadSerializer(serializers.ModelSerializer):
             'cover',
             'endtime',
             'created_at',
-            'list_payment',
+            'list_payments',
         )
 
-    def get_list_payment(self, obj):
+    def get_current_amount(self, obj):
+        """Метод для получения собранной суммы."""
+        return sum(payment.amount for payment in obj.payments.all())
+
+    def get_patrician_count(self, obj):
+        """Метод для количесвта потриций."""
+        return obj.payments.values('user').distinct().count()
+
+    def get_list_payments(self, obj):
         """Метод для получения списка платежей."""
-        payments = Payment.objects.filter(collect=obj)
-        return PaymentShortSerializer(payments, many=True).data
+        return PaymentSortSerializer(obj.payments.all(), many=True).data
 
 
 class CollectWriteSerializer(serializers.ModelSerializer):
@@ -149,13 +177,25 @@ class CollectWriteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Метод для создания сбора."""
         events_data = validated_data.pop('event')
-        cover_image_data = validated_data.pop('cover')
         collect = Collect.objects.create(**validated_data)
         for event_data in events_data:
             collect.event.add(event_data)
-        collect.cover = cover_image_data
         collect.save()
+        send_mail(
+            'Сбор создан',
+            'Ваш сбор успешно создан!',
+            'support@dotations.com',
+            [self.context['request'].user.email],
+            fail_silently=True,
+        )
         return collect
+
+    def validate_endtime(self, value):
+        if value < timezone.now():
+            raise serializers.ValidationError(
+                'Дата окончания должна быть больше текущей.'
+            )
+        return value
 
     def to_representation(self, instance):
         """Метод для представления сбора."""
