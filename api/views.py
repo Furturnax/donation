@@ -1,6 +1,7 @@
 # from django.views.decorators.cache import cache_page
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import viewsets
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 
 from api.permissions import IsAuthorOrReadOnly
@@ -19,6 +20,7 @@ class UserViewSet(DjoserUserViewSet):
 
     serializer_class = UserSerializer
     queryset = User.objects.all()
+    pagination_class = LimitOffsetPagination
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -27,6 +29,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentWriteSerializer
     queryset = Payment.objects.all()
     permission_classes = (IsAuthenticated, IsAuthorOrReadOnly)
+    pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         """Определяет класс сериализатора в зависимости от типа запроса."""
@@ -41,6 +44,7 @@ class CollectViewSet(viewsets.ModelViewSet):
     serializer_class = CollectWriteSerializer
     queryset = Collect.objects.all()
     permission_classes = (IsAuthenticated, IsAuthorOrReadOnly)
+    pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
         """Определяет класс сериализатора в зависимости от типа запроса."""

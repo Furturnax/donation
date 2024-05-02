@@ -54,7 +54,7 @@ class Collect(models.Model):
     class Meta:
         verbose_name = 'сбор'
         verbose_name_plural = 'Сборы'
-        ordering = ('title',)
+        ordering = ('-created_at',)
 
     def __str__(self):
         return f'{self.title} - {self.author.username} - {self.target_amount}'

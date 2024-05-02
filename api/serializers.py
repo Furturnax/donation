@@ -52,7 +52,7 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class PaymentWriteSerializer(serializers.ModelSerializer):
-    """Сериализатор модели платяжа."""
+    """Сериализатор модели платежа."""
 
     class Meta:
         model = Payment
@@ -80,7 +80,7 @@ class PaymentWriteSerializer(serializers.ModelSerializer):
 
 
 class PaymentReadSerializer(serializers.ModelSerializer):
-    """Сериализатор модели платяжа."""
+    """Сериализатор модели платежа."""
 
     user = UserShortSerializer()
 
@@ -96,7 +96,7 @@ class PaymentReadSerializer(serializers.ModelSerializer):
 
 
 class PaymentSortSerializer(serializers.ModelSerializer):
-    """Сериализатор модели платяжа."""
+    """Сериализатор модели платежа."""
 
     user = UserShortSerializer()
 
@@ -140,7 +140,7 @@ class CollectReadSerializer(serializers.ModelSerializer):
         return sum(payment.amount for payment in obj.payments.all())
 
     def get_patrician_count(self, obj):
-        """Метод для количесвта потриций."""
+        """Метод для получения количества патриций."""
         return obj.payments.values('user').distinct().count()
 
     def get_list_payments(self, obj):
@@ -155,7 +155,6 @@ class CollectWriteSerializer(serializers.ModelSerializer):
         queryset=Event.objects.all(),
         many=True,
     )
-
     cover = Base64ImageField(
         allow_null=False,
         allow_empty_file=False,
