@@ -1,14 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 
-from core.consts import (
-    DECIMAL_PLACE,
-    MAX_DIGITS_DECIMALFIELD,
-    MAX_LENGHT_TITLE,
-    MAX_LENGTH_TEXT,
-    MIN_PAYMENT,
-    MIN_VALUE_VALIDATOR
-)
+from core.consts import MAX_LENGHT_TITLE, MIN_VALUE_VALIDATOR
 from users.models import User
 
 
@@ -19,16 +12,15 @@ class Collect(models.Model):
         User, verbose_name='Автор сбора', on_delete=models.CASCADE,
     )
     title = models.CharField(
-        'Название сбора', max_length=MAX_LENGHT_TITLE,
+        'Название сбора'
     )
     event = models.ManyToManyField(
         'Event', verbose_name='Событие',
     )
     text = models.TextField(
-        'Описание целей сбора',
-        max_length=MAX_LENGTH_TEXT,
+        'Описание целей сбора'
     )
-    target_amount = models.IntegerField(
+    target_amount = models.PositiveIntegerField(
         'Сумма запланированная к сбору',
         default=None,
         validators=(
@@ -36,13 +28,13 @@ class Collect(models.Model):
                 MIN_VALUE_VALIDATOR,
                 message=(
                     'Минимально заплонированная сумма '
-                    f'сбора - {MIN_VALUE_VALIDATOR}.'
+                    f'сбора в рублях - {MIN_VALUE_VALIDATOR}.'
                 )
             ),
         ),
     )
     cover = models.ImageField(
-        'Обложка сбора', upload_to='source/image/', null=True, blank=True
+        'Обложка сбора', upload_to='image/', null=True, blank=True
     )
     endtime = models.DateTimeField(
         'Дата и время завершение сбора',
@@ -84,16 +76,14 @@ class Payment(models.Model):
     user = models.ForeignKey(
         User, verbose_name='Пользователь платежа', on_delete=models.CASCADE,
     )
-    amount = models.DecimalField(
+    amount = models.PositiveIntegerField(
         'Сумма платежа',
-        max_digits=MAX_DIGITS_DECIMALFIELD,
-        decimal_places=DECIMAL_PLACE,
         validators=(
             MinValueValidator(
-                MIN_PAYMENT,
+                MIN_VALUE_VALIDATOR,
                 message=(
-                    'Минимальная сумма платежа '
-                    f'- {MIN_PAYMENT}.'
+                    'Минимальная сумма платежа в рублях'
+                    f'- {MIN_VALUE_VALIDATOR}.'
                 )
             ),
         ),
