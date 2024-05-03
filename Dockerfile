@@ -1,10 +1,18 @@
-FROM python:3.11.5
+FROM python:alpine
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+RUN apk update && apk add libpq
+RUN apk add --virtual .build-deps gcc python3-dev musl-dev postgresql-dev
+
+RUN pip install --upgrade pip
+
+COPY requirements.txt ./requirements.txt
+RUN pip install -r requirements.txt
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt --no-cache-dir
+RUN apk del .build-deps
 
 COPY . .
-
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "donation.wsgi"]
