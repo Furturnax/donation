@@ -1,4 +1,3 @@
-# from django.views.decorators.cache import cache_page
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
@@ -51,8 +50,3 @@ class CollectViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return CollectReadSerializer
         return CollectWriteSerializer
-
-    # @cache_page(60 * 30)
-    # def list(self, request, *args, **kwargs):
-    #     """Кэширование данных, возвращаемых GET-эндпоинтом"""
-    #     return super().list(request, *args, **kwargs)
