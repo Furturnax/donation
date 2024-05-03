@@ -32,6 +32,26 @@
 
 <br>
 
+## Порядок запросов к API
+
+http://localhost:8000/api/ - Основной ресурс.
+
+http://localhost:8000/api/docs/ - Документация.
+
+/users/ - Пользователи.
+
+/payments/ - Платежи.
+
+/collects/ - Сборы.
+
+http://localhost:8000/api/users/ - Регистрация.
+
+http://localhost:8000/api/auth/token/login/ - Получение токена.
+
+`Body` -> `Headers` -> `Key` - Authorization и `Value` - Token полученный_токен для отправки любого запроса. 
+
+<br>
+
 ## Dreamteam:
 
 [GitHub](https://github.com/Furturnax) | Разработчик - Andrew Fedorchenko 
