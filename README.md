@@ -52,6 +52,14 @@ http://localhost:8000/api/v1/auth/token/login/ - Получение токена
 
 <br>
 
+## Схема базы данных:
+
+https://gh.atlasgo.cloud/explore/89619928 - Полная версия.
+
+<img src="./assets/db_schema.png" alt="Schema of db">
+
+<br>
+
 ## Dreamteam:
 
 [GitHub](https://github.com/Furturnax) | Разработчик - Andrew Fedorchenko 
