@@ -1,7 +1,12 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 
-from core.consts import MAX_LENGHT_TITLE, MIN_VALUE_VALIDATOR
+from core.consts import (
+    DECIMAL_PLACE,
+    MAX_DIGITS_IN_DECIMAL,
+    MAX_LENGHT_TITLE,
+    MIN_VALUE_VALIDATOR
+)
 from users.models import User
 
 
@@ -20,8 +25,10 @@ class Collect(models.Model):
     text = models.TextField(
         'Описание целей сбора'
     )
-    target_amount = models.PositiveIntegerField(
+    target_amount = models.DecimalField(
         'Сумма запланированная к сбору',
+        max_digits=MAX_DIGITS_IN_DECIMAL,
+        decimal_places=DECIMAL_PLACE,
         default=None,
         validators=(
             MinValueValidator(
@@ -76,8 +83,10 @@ class Payment(models.Model):
     user = models.ForeignKey(
         User, verbose_name='Пользователь платежа', on_delete=models.CASCADE,
     )
-    amount = models.PositiveIntegerField(
+    amount = models.DecimalField(
         'Сумма платежа',
+        max_digits=MAX_DIGITS_IN_DECIMAL,
+        decimal_places=DECIMAL_PLACE,
         validators=(
             MinValueValidator(
                 MIN_VALUE_VALIDATOR,
