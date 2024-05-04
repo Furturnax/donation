@@ -1,11 +1,19 @@
+import os
+from decimal import Decimal
+
 from django.core.mail import send_mail
-from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
+from dotenv import load_dotenv
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from collect.models import Collect, Event, Payment
 from users.models import User
+
+load_dotenv(
+    dotenv_path='./docker/envfiles/.env'
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -64,7 +72,6 @@ class PaymentWriteSerializer(serializers.ModelSerializer):
             'created_at',
         )
 
-    @transaction.atomic
     def create(self, validated_data):
         """Метод для создания платежа."""
         payment = Payment.objects.create(**validated_data)
@@ -72,7 +79,7 @@ class PaymentWriteSerializer(serializers.ModelSerializer):
         send_mail(
             'Платёж создан',
             'Ваш платеж успешно создан!',
-            'support@dotations.com',
+            os.getenv('EMAIL_HOST_USER'),
             [self.context['request'].user.email],
             fail_silently=True,
         )
@@ -137,7 +144,9 @@ class CollectReadSerializer(serializers.ModelSerializer):
 
     def get_current_amount(self, obj):
         """Метод для получения собранной суммы."""
-        return sum(payment.amount for payment in obj.payments.all())
+        return obj.payments.aggregate(
+            current_amount=Sum('amount')
+        )['current_amount'] or Decimal('0.00')
 
     def get_patrician_count(self, obj):
         """Метод для получения количества патриций."""
@@ -172,7 +181,6 @@ class CollectWriteSerializer(serializers.ModelSerializer):
             'endtime',
         )
 
-    @transaction.atomic
     def create(self, validated_data):
         """Метод для создания сбора."""
         events_data = validated_data.pop('event')
@@ -183,7 +191,7 @@ class CollectWriteSerializer(serializers.ModelSerializer):
         send_mail(
             'Сбор создан',
             'Ваш сбор успешно создан!',
-            'support@dotations.com',
+            os.getenv('EMAIL_HOST_USER'),
             [self.context['request'].user.email],
             fail_silently=True,
         )

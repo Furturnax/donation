@@ -54,7 +54,7 @@ class Command(BaseCommand):
                     end=10000
                 ),
                 endtime=timezone.make_aware(
-                    generic.datetime.datetime(start=2024, end=2030),
+                    generic.datetime.datetime(start=2025, end=2030),
                     timezone.get_current_timezone()
                 )
             )

@@ -34,9 +34,9 @@
 
 ## Порядок запросов к API
 
-http://localhost:8000/api/ - Основной ресурс.
+http://localhost:8000/api/v1/ - Основной ресурс.
 
-http://localhost:8000/api/docs/ - Документация.
+http://localhost:8000/api/v1/docs/ - Документация.
 
 /users/ - Пользователи.
 
@@ -44,11 +44,19 @@ http://localhost:8000/api/docs/ - Документация.
 
 /collects/ - Сборы.
 
-http://localhost:8000/api/users/ - Регистрация.
+http://localhost:8000/api/v1/users/ - Регистрация.
 
-http://localhost:8000/api/auth/token/login/ - Получение токена.
+http://localhost:8000/api/v1/auth/token/login/ - Получение токена.
 
 `Body` -> `Headers` -> `Key` - Authorization и `Value` - Token полученный_токен для отправки любого запроса. 
+
+<br>
+
+## Схема базы данных:
+
+https://gh.atlasgo.cloud/explore/89619928 - Полная версия.
+
+<img src="./assets/db_schema.png" alt="Schema of db">
 
 <br>
 

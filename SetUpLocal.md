@@ -29,15 +29,18 @@ pip install -r requirements.txt
 
 + Установить [Docker compose](https://www.docker.com/) на свой компьютер.
 
-+ Создать файл `.env` с переменными окружения в `dev`:
++ Создать файл `.env` с переменными окружения в `docker/envfiles/`:
 
 [Примеры переменных окружения](./docker/envfiles/.env.example)
 
 + Запустить проект через `docker-compose`:
 ```shell script
-docker compose -f docker-compose.dev.yml up --build -d
+docker compose -f docker-compose.dev.yml up --build -d --force-recreate
 ```
-
+Для отдельного контейнера
+```shell script
+docker compose -f docker-compose.dev.yml up django --build -d --force-recreate
+```
 + Добавить синтетические данные:
 ```shell script
 docker compose -f docker-compose.dev.yml exec django python manage.py load_data
