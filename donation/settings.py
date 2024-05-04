@@ -38,6 +38,7 @@ THIRD_PARTY_APPS = [
     'djoser',
     'rest_framework_swagger',
     'drf_yasg',
+    'djangoviz',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
