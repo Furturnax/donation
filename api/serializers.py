@@ -1,13 +1,19 @@
+import os
 from decimal import Decimal
 
 from django.core.mail import send_mail
 from django.db.models import Sum
 from django.utils import timezone
+from dotenv import load_dotenv
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from collect.models import Collect, Event, Payment
 from users.models import User
+
+load_dotenv(
+    dotenv_path='./docker/envfiles/.env'
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -73,7 +79,7 @@ class PaymentWriteSerializer(serializers.ModelSerializer):
         send_mail(
             'Платёж создан',
             'Ваш платеж успешно создан!',
-            'drewfed@yandex.ru',
+            os.getenv('EMAIL_HOST_USER'),
             [self.context['request'].user.email],
             fail_silently=True,
         )
@@ -185,7 +191,7 @@ class CollectWriteSerializer(serializers.ModelSerializer):
         send_mail(
             'Сбор создан',
             'Ваш сбор успешно создан!',
-            'drewfed@yandex.ru',
+            os.getenv('EMAIL_HOST_USER'),
             [self.context['request'].user.email],
             fail_silently=True,
         )
