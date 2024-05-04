@@ -14,19 +14,19 @@ class Collect(models.Model):
     """Модель сбора."""
 
     author = models.ForeignKey(
-        User, verbose_name='Автор сбора', on_delete=models.CASCADE,
+        User, verbose_name='Автор', on_delete=models.CASCADE,
     )
     title = models.CharField(
-        'Название сбора'
+        'Название'
     )
     event = models.ManyToManyField(
         'Event', verbose_name='Событие',
     )
     text = models.TextField(
-        'Описание целей сбора'
+        'Описание'
     )
     target_amount = models.DecimalField(
-        'Сумма запланированная к сбору',
+        'Сумма',
         max_digits=MAX_DIGITS_IN_DECIMAL,
         decimal_places=DECIMAL_PLACE,
         default=None,
@@ -41,19 +41,20 @@ class Collect(models.Model):
         ),
     )
     cover = models.ImageField(
-        'Обложка сбора', upload_to='image/', null=True, blank=True
+        'Обложка', upload_to='image/', null=True, blank=True
     )
     endtime = models.DateTimeField(
-        'Дата и время завершение сбора',
+        'Дата завершение сбора',
     )
     created_at = models.DateTimeField(
-        'Время создания сбора', auto_now_add=True
+        'Дата создания сбора', auto_now_add=True
     )
 
     class Meta:
         verbose_name = 'сбор'
         verbose_name_plural = 'Сборы'
         ordering = ('-created_at',)
+        default_related_name = 'collects'
 
     def __str__(self):
         return f'{self.title} - {self.author.username} - {self.target_amount}'
@@ -63,7 +64,7 @@ class Event(models.Model):
     """Модель события для сбора."""
 
     title = models.CharField(
-        'Событие для сбора', max_length=MAX_LENGHT_TITLE,
+        'Событие', max_length=MAX_LENGHT_TITLE,
     )
 
     class Meta:

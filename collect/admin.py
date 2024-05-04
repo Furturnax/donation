@@ -1,4 +1,8 @@
+from decimal import Decimal
+
 from django.contrib import admin
+from django.db.models import Sum
+from django.utils.safestring import mark_safe
 
 from .models import Collect, Event, Payment
 
@@ -14,9 +18,6 @@ class EventAdmin(admin.ModelAdmin):
     search_fields = (
         'title',
     )
-    list_filter = (
-        'title',
-    )
     list_display_links = ('title',)
     ordering = ('title',)
 
@@ -26,18 +27,25 @@ class PaymentAdmin(admin.ModelAdmin):
     """Интерфейс управления платяжами."""
 
     list_display = (
-        'collect',
         'user',
         'amount',
         'created_at',
+        'display_collect',
     )
-    search_fields = ('user__username',)
+    search_fields = (
+        'user__username',
+        'collect__title',
+    )
     list_filter = (
         'user__username',
         'collect__title',
     )
-    list_display_links = ('user',)
-    ordering = ('user',)
+    list_display_links = ('display_collect',)
+    ordering = ('-created_at',)
+
+    @admin.display(description='Название сбора')
+    def display_collect(self, obj):
+        return obj.collect.title
 
 
 @admin.register(Collect)
@@ -50,23 +58,48 @@ class CollectAdmin(admin.ModelAdmin):
         'display_event',
         'text',
         'target_amount',
-        'cover',
+        'display_current_amount',
+        'display_patrician_count',
+        'cover_tag',
         'endtime',
         'created_at',
     )
     search_fields = (
         'author__username',
-        'collect__title',
+        'title',
     )
     list_filter = (
-        'author__username',
+        'created_at',
+        'endtime',
     )
     list_display_links = ('author',)
     ordering = ('-created_at',)
+    readonly_fields = ('cover_tag',)
 
-    @admin.display(description='События')
+    @admin.display(description='Событие')
     def display_event(self, obj):
         """Добавляет события в разделе сбора."""
         return ', '.join(
             event.title for event in obj.event.all()
         )
+
+    @admin.display(description='Собранная сумма')
+    def display_current_amount(self, obj):
+        """Добавляет общую сумму в разделе сбора."""
+        return obj.payments.aggregate(
+            current_amount=Sum('amount')
+        )['current_amount'] or Decimal('0.00')
+
+    @admin.display(description='Пожертвовавшие')
+    def display_patrician_count(self, obj):
+        """Добавляет общую сумму в разделе сбора."""
+        return obj.payments.values('user').distinct().count()
+
+    @admin.display(description='Обложка')
+    def cover_tag(self, obj):
+        """Добавляет обложку в разделе сбора."""
+        if obj.cover:
+            return mark_safe(
+                f'<img src={obj.cover.url} width="60" height="60">'
+            )
+        return 'Нет изображения'
