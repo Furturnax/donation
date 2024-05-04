@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 from django.core.mail import send_mail
-from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 from drf_extra_fields.fields import Base64ImageField
@@ -67,7 +66,6 @@ class PaymentWriteSerializer(serializers.ModelSerializer):
             'created_at',
         )
 
-    @transaction.atomic
     def create(self, validated_data):
         """Метод для создания платежа."""
         payment = Payment.objects.create(**validated_data)
@@ -75,7 +73,7 @@ class PaymentWriteSerializer(serializers.ModelSerializer):
         send_mail(
             'Платёж создан',
             'Ваш платеж успешно создан!',
-            'support@dotations.com',
+            'drewfed@yandex.ru',
             [self.context['request'].user.email],
             fail_silently=True,
         )
@@ -177,7 +175,6 @@ class CollectWriteSerializer(serializers.ModelSerializer):
             'endtime',
         )
 
-    @transaction.atomic
     def create(self, validated_data):
         """Метод для создания сбора."""
         events_data = validated_data.pop('event')
@@ -188,7 +185,7 @@ class CollectWriteSerializer(serializers.ModelSerializer):
         send_mail(
             'Сбор создан',
             'Ваш сбор успешно создан!',
-            'support@dotations.com',
+            'drewfed@yandex.ru',
             [self.context['request'].user.email],
             fail_silently=True,
         )

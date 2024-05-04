@@ -14,7 +14,7 @@ services:
       - '8000:8000'
     container_name: django
     env_file:
-      - docker/envfiles/.env.dev
+      - docker/envfiles/.env
     volumes:
       - ./:/app
       - static:/app/static
@@ -48,7 +48,7 @@ services:
     container_name: postgres
     restart: always
     env_file:
-      - docker/envfiles/.env.dev
+      - docker/envfiles/.env
     volumes:
       - pgdata:/var/lib/postgresql/data/
   
@@ -56,7 +56,7 @@ services:
     image: redis:alpine
     container_name: redis
     env_file:
-      - docker/envfiles/.env.dev
+      - docker/envfiles/.env
     expose:
       - 6379
     volumes:
@@ -67,7 +67,7 @@ services:
     container_name: celery-worker
     restart: always
     env_file:
-      - docker/envfiles/.env.dev
+      - docker/envfiles/.env
     volumes:
       - ./:/app
       - media:/app/media
@@ -79,7 +79,7 @@ services:
       build: .
       container_name: celery-beat
       env_file:
-          - docker/envfiles/.env.dev
+          - docker/envfiles/.env
       depends_on: 
           - redis
       command: celery -A donation beat --loglevel=info --logfile=./docker/logs/celery-beat.log
