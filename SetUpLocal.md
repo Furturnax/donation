@@ -29,7 +29,7 @@ pip install -r requirements.txt
 
 + Установить [Docker compose](https://www.docker.com/) на свой компьютер.
 
-+ Создать файл `.env` с переменными окружения в `dev`:
++ Создать файл `.env` с переменными окружения в `docker/envfiles/`:
 
 [Примеры переменных окружения](./docker/envfiles/.env.example)
 
