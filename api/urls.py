@@ -8,11 +8,11 @@ from api.views import UserViewSet, PaymentViewSet, CollectViewSet
 
 app_name = 'api'
 
-router = DefaultRouter()
+router_v1 = DefaultRouter()
 
-router.register(r'users', UserViewSet, 'users')
-router.register(r'payments', PaymentViewSet, 'payments')
-router.register(r'collects', CollectViewSet, 'collects')
+router_v1.register(r'users', UserViewSet, 'users')
+router_v1.register(r'payments', PaymentViewSet, 'payments')
+router_v1.register(r'collects', CollectViewSet, 'collects')
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -24,12 +24,16 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-urlpatterns = [
-    path('', include(router.urls)),
+v1_patterns = [
+    path('', include(router_v1.urls)),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
     path(
         'docs/',
         schema_view.with_ui('swagger', cache_timeout=0),
         name='schema-swagger-ui'
     ),
+]
+
+urlpatterns = [
+    path('v1/', include(v1_patterns)),
 ]
