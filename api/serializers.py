@@ -1,5 +1,8 @@
+from decimal import Decimal
+
 from django.core.mail import send_mail
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -137,7 +140,9 @@ class CollectReadSerializer(serializers.ModelSerializer):
 
     def get_current_amount(self, obj):
         """Метод для получения собранной суммы."""
-        return sum(payment.amount for payment in obj.payments.all())
+        return obj.payments.aggregate(
+            current_amount=Sum('amount')
+        )['current_amount'] or Decimal('0.00')
 
     def get_patrician_count(self, obj):
         """Метод для получения количества патриций."""
