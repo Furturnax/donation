@@ -2,6 +2,7 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Count, Sum, Prefetch
 
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
@@ -11,7 +12,7 @@ from api.serializers import (
     PaymentWriteSerializer,
     UserSerializer,
 )
-from collect.models import User, Payment, Collect
+from collect.models import Event, User, Payment, Collect
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -27,7 +28,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
     serializer_class = PaymentWriteSerializer
     queryset = Payment.objects.all()
-    permission_classes = (IsAuthenticated, IsAuthorOrReadOnly)
+    permission_classes = (IsAuthorOrReadOnly, IsAuthenticated)
     pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):
@@ -40,9 +41,19 @@ class PaymentViewSet(viewsets.ModelViewSet):
 class CollectViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы со сбором."""
 
+    queryset = Collect.objects.annotate(
+        total_amount=Sum('payments__amount'),
+        uniq_patrician=Count('payments__user', distinct=True),
+    ).prefetch_related(
+        Prefetch(
+            'event', queryset=Event.objects.all()
+        ),
+        Prefetch(
+            'payments', queryset=Payment.objects.select_related('user').all()
+        ),
+    )
     serializer_class = CollectWriteSerializer
-    queryset = Collect.objects.all()
-    permission_classes = (IsAuthenticated, IsAuthorOrReadOnly)
+    permission_classes = (IsAuthorOrReadOnly, IsAuthenticated)
     pagination_class = LimitOffsetPagination
 
     def get_serializer_class(self):

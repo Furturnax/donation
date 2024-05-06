@@ -53,7 +53,6 @@ class Collect(models.Model):
     class Meta:
         verbose_name = 'сбор'
         verbose_name_plural = 'Сборы'
-        ordering = ('-created_at',)
         default_related_name = 'collects'
 
     def __str__(self):
@@ -105,7 +104,6 @@ class Payment(models.Model):
     class Meta:
         verbose_name = 'платеж'
         verbose_name_plural = 'Платяжи'
-        ordering = ('-created_at',)
         default_related_name = 'payments'
 
     def __str__(self):

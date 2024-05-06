@@ -1,14 +1,13 @@
 import os
-from decimal import Decimal
 
 from django.core.mail import send_mail
-from django.db.models import Sum
 from django.utils import timezone
 from dotenv import load_dotenv
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from collect.models import Collect, Event, Payment
+from core.consts import DECIMAL_PLACE, MAX_DIGITS_IN_DECIMAL
 from users.models import User
 
 load_dotenv(
@@ -32,21 +31,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserShortSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода имени и фамилии пользователя."""
-
-    full_name = serializers.SerializerMethodField()
+    """Сериализатор сокращенной модели пользователя."""
 
     class Meta:
         model = User
         fields = (
-            'full_name',
+            'first_name',
+            'last_name',
         )
-
-    def get_full_name(self, obj):
-        """Возвращает имя и фамилию."""
-        if obj.first_name or obj.last_name:
-            return f'{obj.first_name} {obj.last_name}'
-        return obj.username
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -89,8 +81,6 @@ class PaymentWriteSerializer(serializers.ModelSerializer):
 class PaymentReadSerializer(serializers.ModelSerializer):
     """Сериализатор модели платежа."""
 
-    user = UserShortSerializer()
-
     class Meta:
         model = Payment
         fields = (
@@ -102,10 +92,10 @@ class PaymentReadSerializer(serializers.ModelSerializer):
         )
 
 
-class PaymentSortSerializer(serializers.ModelSerializer):
+class PaymentShortSerializer(serializers.ModelSerializer):
     """Сериализатор модели платежа."""
 
-    user = UserShortSerializer()
+    user = UserShortSerializer(read_only=True)
 
     class Meta:
         model = Payment
@@ -119,11 +109,20 @@ class PaymentSortSerializer(serializers.ModelSerializer):
 class CollectReadSerializer(serializers.ModelSerializer):
     """Сериализатор для получения информации о сборе."""
 
-    author = UserShortSerializer()
-    event = EventSerializer(many=True)
-    current_amount = serializers.SerializerMethodField()
-    patrician_count = serializers.SerializerMethodField()
-    list_payments = serializers.SerializerMethodField()
+    author = UserShortSerializer(source='user', read_only=True)
+    event = EventSerializer(many=True, read_only=True)
+    current_amount = serializers.DecimalField(
+        source='total_amount',
+        max_digits=MAX_DIGITS_IN_DECIMAL,
+        decimal_places=DECIMAL_PLACE,
+        read_only=True
+    )
+    patrician_count = serializers.IntegerField(
+        source='uniq_patrician', read_only=True
+    )
+    list_payments = PaymentShortSerializer(
+        source='payments', many=True, read_only=True
+    )
 
     class Meta:
         model = Collect
@@ -141,20 +140,6 @@ class CollectReadSerializer(serializers.ModelSerializer):
             'created_at',
             'list_payments',
         )
-
-    def get_current_amount(self, obj):
-        """Метод для получения собранной суммы."""
-        return obj.payments.aggregate(
-            current_amount=Sum('amount')
-        )['current_amount'] or Decimal('0.00')
-
-    def get_patrician_count(self, obj):
-        """Метод для получения количества патриций."""
-        return obj.payments.values('user').distinct().count()
-
-    def get_list_payments(self, obj):
-        """Метод для получения списка платежей."""
-        return PaymentSortSerializer(obj.payments.all(), many=True).data
 
 
 class CollectWriteSerializer(serializers.ModelSerializer):

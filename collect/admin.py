@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.contrib import admin
-from django.db.models import Sum
+from django.db.models import Count, Sum, Prefetch
 from django.utils.safestring import mark_safe
 
 from .models import Collect, Event, Payment
@@ -76,6 +76,21 @@ class CollectAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     readonly_fields = ('cover_tag',)
 
+    def get_queryset(self, request):
+        """Получаем кверисет Collect."""
+
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(
+            total_amount=Sum('payments__amount'),
+            uniq_patrician=Count('payments__user', distinct=True),
+        )
+        queryset = queryset.prefetch_related(
+            Prefetch(
+                'event', queryset=Event.objects.all()
+            ),
+        )
+        return queryset
+
     @admin.display(description='Событие')
     def display_event(self, obj):
         """Добавляет события в разделе сбора."""
@@ -86,14 +101,12 @@ class CollectAdmin(admin.ModelAdmin):
     @admin.display(description='Собранная сумма')
     def display_current_amount(self, obj):
         """Добавляет общую сумму в разделе сбора."""
-        return obj.payments.aggregate(
-            current_amount=Sum('amount')
-        )['current_amount'] or Decimal('0.00')
+        return obj.total_amount or Decimal('0.00')
 
     @admin.display(description='Пожертвовавшие')
     def display_patrician_count(self, obj):
-        """Добавляет общую сумму в разделе сбора."""
-        return obj.payments.values('user').distinct().count()
+        """Добавляет количество пожертвовавших в разделе сбора."""
+        return obj.uniq_patrician
 
     @admin.display(description='Обложка')
     def cover_tag(self, obj):
