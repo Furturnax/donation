@@ -2,7 +2,11 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
+from django.core.cache import cache
 from django.db.models import Count, Sum, Prefetch
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+
 
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
@@ -15,6 +19,7 @@ from api.serializers import (
 from collect.models import Event, User, Payment, Collect
 
 
+@method_decorator(cache_page(60*30), name='dispatch')
 class UserViewSet(DjoserUserViewSet):
     """Вьюсет для работы с пользователями."""
 
@@ -23,6 +28,7 @@ class UserViewSet(DjoserUserViewSet):
     pagination_class = LimitOffsetPagination
 
 
+@method_decorator(cache_page(60*30), name='dispatch')
 class PaymentViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы с платяжом."""
 
@@ -38,6 +44,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         return PaymentWriteSerializer
 
 
+@method_decorator(cache_page(60*30), name='dispatch')
 class CollectViewSet(viewsets.ModelViewSet):
     """Вьюсет для работы со сбором."""
 
@@ -49,7 +56,7 @@ class CollectViewSet(viewsets.ModelViewSet):
             'event', queryset=Event.objects.all()
         ),
         Prefetch(
-            'payments', queryset=Payment.objects.select_related('user').all()
+            'payments', queryset=Payment.objects.all().select_related('user')
         ),
     )
     serializer_class = CollectWriteSerializer
