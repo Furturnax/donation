@@ -56,7 +56,7 @@ class Collect(models.Model):
         default_related_name = 'collects'
 
     def __str__(self):
-        return f'{self.title} - {self.author.username} - {self.target_amount}'
+        return f'{self.pk}'
 
 
 class Event(models.Model):
@@ -78,13 +78,13 @@ class Payment(models.Model):
     """Модель платежа."""
 
     collect = models.ForeignKey(
-        Collect, verbose_name='Платеж сбора', on_delete=models.CASCADE,
+        Collect, verbose_name='Сбор', on_delete=models.CASCADE,
     )
     user = models.ForeignKey(
-        User, verbose_name='Пользователь платежа', on_delete=models.CASCADE,
+        User, verbose_name='Пользователь', on_delete=models.CASCADE,
     )
     amount = models.DecimalField(
-        'Сумма платежа',
+        'Сумма',
         max_digits=MAX_DIGITS_IN_DECIMAL,
         decimal_places=DECIMAL_PLACE,
         validators=(
@@ -107,7 +107,4 @@ class Payment(models.Model):
         default_related_name = 'payments'
 
     def __str__(self):
-        return (
-            f'{self.user.username} жертвует {self.amount} '
-            f'в {self.created_at}'
-        )
+        return (f'{self.amount}')

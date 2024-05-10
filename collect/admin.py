@@ -27,10 +27,10 @@ class PaymentAdmin(admin.ModelAdmin):
     """Интерфейс управления платяжами."""
 
     list_display = (
+        'collect',
         'user',
         'amount',
         'created_at',
-        'display_collect',
     )
     search_fields = (
         'user__username',
@@ -40,12 +40,6 @@ class PaymentAdmin(admin.ModelAdmin):
         'user__username',
         'collect__title',
     )
-    list_display_links = ('display_collect',)
-    ordering = ('-created_at',)
-
-    @admin.display(description='Название сбора')
-    def display_collect(self, obj):
-        return obj.collect.title
 
 
 @admin.register(Collect)

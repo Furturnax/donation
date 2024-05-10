@@ -1,11 +1,9 @@
-import os
-
-from django.core.mail import send_mail
 from django.utils import timezone
 from dotenv import load_dotenv
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
+from api.tasks import send_collect_created_email, send_payment_created_email
 from collect.models import Collect, Event, Payment
 from core.consts import DECIMAL_PLACE, MAX_DIGITS_IN_DECIMAL
 from users.models import User
@@ -66,15 +64,8 @@ class PaymentWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Метод для создания платежа."""
-        payment = Payment.objects.create(**validated_data)
-        payment.save()
-        send_mail(
-            'Платёж создан',
-            'Ваш платеж успешно создан!',
-            os.getenv('EMAIL_HOST_USER'),
-            [self.context['request'].user.email],
-            fail_silently=True,
-        )
+        payment = super().create(validated_data)
+        send_payment_created_email.delay_on_commit(payment.id)
         return payment
 
 
@@ -168,18 +159,8 @@ class CollectWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Метод для создания сбора."""
-        events_data = validated_data.pop('event')
-        collect = Collect.objects.create(**validated_data)
-        for event_data in events_data:
-            collect.event.add(event_data)
-        collect.save()
-        send_mail(
-            'Сбор создан',
-            'Ваш сбор успешно создан!',
-            os.getenv('EMAIL_HOST_USER'),
-            [self.context['request'].user.email],
-            fail_silently=True,
-        )
+        collect = super().create(validated_data)
+        send_collect_created_email.delay_on_commit(collect.id)
         return collect
 
     def validate_endtime(self, value):
